@@ -24,6 +24,7 @@ public class CartItemService {
     private final MenuItemI18nRepository menuItemI18nRepository;
     private final CartRepository cartRepository;
     private final StoreTableRepository storeTableRepository;
+    private final InventoryService inventoryService;
 
     @Transactional
     public CartItemAddResponse cartItemCreate(Long storeId, Long tableId, CartItemAddRequest request) {
@@ -54,6 +55,10 @@ public class CartItemService {
 
         // 기존 장바구니 아이템 조회 (중복 처리)
         CartItem existingCartItem = cartItemRepository.findByCartAndMenuItem(cart, menuItem).orElse(null);
+
+        // 품절·재고 확인 (이미 담긴 수량 포함)
+        int totalQuantity = request.getQuantity() + (existingCartItem != null ? existingCartItem.getQuantity() : 0);
+        inventoryService.checkOrderable(menuItem, totalQuantity, name);
 
         CartItem saved;
         if (existingCartItem != null) {

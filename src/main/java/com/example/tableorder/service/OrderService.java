@@ -1,5 +1,7 @@
 package com.example.tableorder.service;
 
+import com.example.tableorder.entity.menu.MenuItem;
+
 import com.example.tableorder.entity.order.OrderStatus;
 
 import java.time.LocalDateTime;
@@ -33,6 +35,7 @@ public class OrderService {
     private final CartItemRepository cartItemRepository;
     private final StoreTableRepository storeTableRepository;
     private final CartRepository cartRepository;
+    private final InventoryService inventoryService;
 
     @Transactional
     public OrderResponse createOrder(Long storeId, Long tableId) {
@@ -52,10 +55,13 @@ public class OrderService {
             throw new IllegalArgumentException("주문할 상품이 없습니다.");
         }
 
-        // 4. 총 금액 계산
-        int totalAmount = cartItems.stream()
-                .mapToInt(item -> item.getPrice() * item.getQuantity())
-                .sum();
+        // 4. 품절·재고 확인 및 차감, 현재 메뉴 가격으로 총액 계산
+        int totalAmount = 0;
+        for (CartItem cartItem : cartItems) {
+            MenuItem menu = cartItem.getMenuItem();
+            inventoryService.deduct(menu, cartItem.getQuantity(), cartItem.getMenuName());
+            totalAmount += menu.getPrice() * cartItem.getQuantity();
+        }
 
         // 5.Order 엔티티 생성
         Order order = Order.builder()
@@ -72,7 +78,7 @@ public class OrderService {
                     .order(order)
                     .menuItem(cartItem.getMenuItem())
                     .quantity(cartItem.getQuantity())
-                    .unitPrice(cartItem.getPrice())
+                    .unitPrice(cartItem.getMenuItem().getPrice())
                     .menuName(cartItem.getMenuName())
                     .build();
             order.addOrderItem(orderItem);

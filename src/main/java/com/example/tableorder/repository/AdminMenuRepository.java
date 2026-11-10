@@ -24,13 +24,44 @@ public interface AdminMenuRepository extends JpaRepository<MenuItem, Long> {
      * @param delta 수량 변화량 (양수/음수 허용)
      * @return 업데이트 된 행 수
      */
-    @Modifying
+    // MySQL은 SET 절을 왼쪽부터 평가하므로 sold_out 계산 시점의 quantity는 이미 갱신된 값이다.
+    @Modifying(flushAutomatically = true)
     @Query(value = """
         UPDATE menu_item
         SET quantity = quantity + :delta,
-            sold_out = (CASE WHEN (quantity + :delta) <= 0 THEN TRUE ELSE sold_out END)
+            sold_out = (CASE WHEN quantity <= 0 THEN TRUE ELSE sold_out END)
         WHERE id = :menuId
         AND (enable_inventory = FALSE OR (enable_inventory = TRUE AND (quantity + :delta) >= 0))
     """, nativeQuery = true)
     int updateQuantityAtomically(@Param("menuId") Long menuId, @Param("delta") int delta);
+
+    /**
+     * 주문 시 재고 차감. 재고 관리 메뉴이고, 품절이 아니고, 수량이 충분할 때만 차감한다.
+     * 차감 후 0이 되면 품절로 바꾼다.
+     * @return 1이면 성공, 0이면 재고 부족(또는 품절·재고 관리 대상 아님)
+     */
+    @Modifying(flushAutomatically = true)
+    @Query(value = """
+        UPDATE menu_item
+        SET quantity = quantity - :qty,
+            sold_out = (quantity = 0)
+        WHERE id = :menuId
+          AND enable_inventory = TRUE
+          AND sold_out = FALSE
+          AND quantity >= :qty
+    """, nativeQuery = true)
+    int deductStock(@Param("menuId") Long menuId, @Param("qty") int qty);
+
+    /**
+     * 주문 취소 시 재고 복원. 차감으로 0이 되어 자동 품절된 경우에만 품절을 해제한다.
+     */
+    @Modifying(flushAutomatically = true)
+    @Query(value = """
+        UPDATE menu_item
+        SET sold_out = (CASE WHEN quantity = 0 THEN FALSE ELSE sold_out END),
+            quantity = quantity + :qty
+        WHERE id = :menuId
+          AND enable_inventory = TRUE
+    """, nativeQuery = true)
+    int restoreStock(@Param("menuId") Long menuId, @Param("qty") int qty);
 }

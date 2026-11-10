@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrderStatusService {
 
     private final OrderStatusRepository orderStatusRepository;
+    private final InventoryService inventoryService;
 
     @Transactional
     public UpdateOrderStatusResponse updateOrderStatus(Long orderId, String status) {
@@ -22,7 +23,11 @@ public class OrderStatusService {
         Order o = orderStatusRepository.findById(orderId)
                 .orElseThrow(() -> new NotFoundException("Order not found: " + orderId));
 
+        boolean wasCancelled = o.getStatus() == OrderStatus.CANCELLED;
         o.changeStatus(next); // 변경감지로 업데이트
+        if (!wasCancelled && next == OrderStatus.CANCELLED) {
+            inventoryService.restore(o);
+        }
 
         return UpdateOrderStatusResponse.builder()
                 .orderId(o.getId())

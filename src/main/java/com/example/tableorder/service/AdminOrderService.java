@@ -52,6 +52,7 @@ public class AdminOrderService {
     private final OrderItemRepository orderItemRepository;
     private final MenuItemI18nRepository menuItemI18nRepository;
     private final EventBroadcaster eventBroadcaster;
+    private final InventoryService inventoryService;
 
     /**
      * 주문 목록 조회.
@@ -90,10 +91,13 @@ public class AdminOrderService {
         for (OrderRequestDto.Item itemDto : dto.getItems()) {
             MenuItem menuItem = adminMenuRepository.findById(itemDto.getMenuItemId())
                     .orElseThrow(() -> new NotFoundException("메뉴 없음"));
-
-            if (menuItem.getEnableInventory() && menuItem.getQuantity() < itemDto.getQuantity()) {
-                throw new ConflictException("재고 부족");
+            if (!menuItem.getCategory().getStore().getId().equals(storeId)) {
+                throw new BusinessRuleException("메뉴 소속 불일치");
             }
+            String menuName = menuItemI18nRepository.findByMenuItemIdAndLang(menuItem.getId(), "ko")
+                    .map(i -> i.getName())
+                    .orElse("이름없음");
+            inventoryService.deduct(menuItem, itemDto.getQuantity(), menuName);
 
             int unitPrice = menuItem.getPrice();
             if (itemDto.getOptionIds() != null) {
@@ -110,20 +114,12 @@ public class AdminOrderService {
                     .menuItem(menuItem)
                     .quantity(itemDto.getQuantity())
                     .unitPrice(unitPrice)
-                    .menuName(menuItemI18nRepository.findByMenuItemIdAndLang(menuItem.getId(), "ko")
-                            .map(i -> i.getName())
-                            .orElse("이름없음"))
+                    .menuName(menuName)
                     .build();
 
             orderItems.add(orderItem);
             totalPrice += unitPrice * itemDto.getQuantity();
 
-            if (menuItem.getEnableInventory()) {
-                int rowsUpdated = adminMenuRepository.updateQuantityAtomically(menuItem.getId(), -itemDto.getQuantity());
-                if (rowsUpdated == 0) {
-                    throw new ConflictException("재고 차감 실패");
-                }
-            }
         }
 
         order.setTotalPrice(totalPrice);
@@ -154,7 +150,11 @@ public class AdminOrderService {
         }
 
         OrderStatus newStatus = OrderStatus.from(dto.getStatus());
+        boolean wasCancelled = order.getStatus() == OrderStatus.CANCELLED;
         order.changeStatus(newStatus);
+        if (!wasCancelled && newStatus == OrderStatus.CANCELLED) {
+            inventoryService.restore(order);
+        }
 
         log.info("주문 상태 변경: storeId={}, orderId={}, newStatus={}", storeId, orderId, newStatus);
         eventBroadcaster.publish("ws.orders." + storeId + ".status.changed");
