@@ -20,6 +20,10 @@ public record PgPayment(
         return "DONE".equals(status);
     }
 
+    public boolean isCanceled() {
+        return "CANCELED".equals(status);
+    }
+
     /** 승인되지 않고 끝난 상태. */
     public boolean isFailed() {
         return "ABORTED".equals(status) || "EXPIRED".equals(status);

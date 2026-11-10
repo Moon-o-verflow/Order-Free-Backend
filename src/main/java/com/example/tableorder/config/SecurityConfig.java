@@ -70,6 +70,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/payments/*").permitAll()
                         // 결제창 successUrl 에서 손님이 호출. 금액·상태 검증은 서버가 한다
                         .requestMatchers(HttpMethod.POST, "/api/payments/confirm").permitAll()
+                        // PG 웹훅. 본문은 신뢰하지 않고 PG 조회로 확인한다
+                        .requestMatchers(HttpMethod.POST, "/api/payments/webhook").permitAll()
                         .requestMatchers("/api/**").hasRole("OWNER")
                         .anyRequest().authenticated()
                 )

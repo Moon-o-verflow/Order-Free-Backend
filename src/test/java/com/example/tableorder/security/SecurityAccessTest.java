@@ -13,6 +13,7 @@ import com.example.tableorder.dto.CartDetailResponse;
 import com.example.tableorder.dto.order.UpdateOrderStatusResponse;
 import com.example.tableorder.entity.order.OrderStatus;
 import com.example.tableorder.repository.OrderRepository;
+import com.example.tableorder.repository.PaymentRepository;
 import com.example.tableorder.repository.StoreTableRepository;
 import com.example.tableorder.service.AdminMenuService;
 import com.example.tableorder.service.CartItemService;
@@ -73,6 +74,7 @@ class SecurityAccessTest {
     @MockBean EventBroadcaster eventBroadcaster;
     @MockBean OrderRepository orderRepository;
     @MockBean StoreTableRepository storeTableRepository;
+    @MockBean PaymentRepository paymentRepository;
 
     private String store1Owner;
 

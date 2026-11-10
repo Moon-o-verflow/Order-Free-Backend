@@ -41,6 +41,21 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
                            @Param("amount") int amount,
                            @Param("now") LocalDateTime now);
 
+    /**
+     * 웹훅 이벤트 기록. 같은 키가 이미 있으면 0을 돌려준다(중복 수신).
+     * 동시에 같은 키가 들어오면 MySQL이 키 단위로 직렬화하므로 하나만 1을 받는다.
+     */
+    @Modifying(flushAutomatically = true)
+    @Query(value = "INSERT IGNORE INTO payment_webhook_event (event_key, received_at) VALUES (:eventKey, :now)",
+            nativeQuery = true)
+    int recordWebhookEvent(@Param("eventKey") String eventKey, @Param("now") LocalDateTime now);
+
+    @Query(value = "SELECT COUNT(*) FROM payment_webhook_event WHERE event_key = :eventKey", nativeQuery = true)
+    long countWebhookEvent(@Param("eventKey") String eventKey);
+
+    @Query("select p.order.table.store.id from Payment p where p.id = :paymentId")
+    Optional<Long> findStoreIdById(@Param("paymentId") Long paymentId);
+
     /** 복구 대상: 결과 미확정 상태로 기준 시각보다 오래 멈춘 결제. */
     List<Payment> findTop50ByStatusInAndUpdatedAtBeforeOrderByUpdatedAtAsc(
             Collection<PaymentStatus> statuses, LocalDateTime before);

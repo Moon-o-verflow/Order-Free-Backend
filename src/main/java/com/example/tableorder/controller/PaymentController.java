@@ -2,6 +2,7 @@ package com.example.tableorder.controller;
 
 import com.example.tableorder.dto.payment.PaymentConfirmRequest;
 import com.example.tableorder.dto.payment.PaymentResponse;
+import com.example.tableorder.dto.payment.TossWebhookRequest;
 import com.example.tableorder.entity.payment.PaymentStatus;
 import com.example.tableorder.service.payment.PaymentFacade;
 import com.example.tableorder.service.payment.PaymentTxService;
@@ -62,6 +63,15 @@ public class PaymentController {
     @Operation(summary = "결제 조회", description = "PG 주문번호로 결제 상태를 조회합니다.")
     public PaymentResponse get(@PathVariable String pgOrderId) {
         return paymentTxService.findByPgOrderId(pgOrderId);
+    }
+
+    @PostMapping("/api/payments/webhook")
+    @Operation(summary = "토스페이먼츠 웹훅",
+            description = "PAYMENT_STATUS_CHANGED 를 받아 PG 조회로 확인한 상태를 반영합니다. "
+                    + "중복 수신은 한 번만 처리하고 200을 돌려줍니다. PG 조회 실패 시 503 → 토스가 재전송합니다.")
+    public ResponseEntity<Map<String, String>> webhook(@RequestBody TossWebhookRequest webhook) {
+        PaymentTxService.WebhookOutcome outcome = paymentFacade.handleWebhook(webhook);
+        return ResponseEntity.ok(Map.of("result", outcome.name()));
     }
 
     @GetMapping("/api/payments/config")

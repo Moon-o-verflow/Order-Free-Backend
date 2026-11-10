@@ -19,4 +19,12 @@ public interface PgClient {
      * @throws PgException.ResultUnknown 조회 자체가 실패함
      */
     Optional<PgPayment> findByOrderId(String pgOrderId);
+
+    /**
+     * 전액 취소. 같은 결제의 취소는 항상 같은 멱등키로 보내, 재시도가 환불을 두 번 만들지 않게 한다.
+     *
+     * @throws PgException.Declined      PG가 취소를 거절함
+     * @throws PgException.ResultUnknown 결과를 알 수 없음 (같은 멱등키로 다시 시도하면 안전)
+     */
+    PgPayment cancel(String paymentKey, String reason);
 }

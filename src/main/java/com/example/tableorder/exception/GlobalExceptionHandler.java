@@ -71,6 +71,12 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", ex.getMessage(), request);
     }
 
+    @ExceptionHandler(com.example.tableorder.service.payment.PgUnavailableException.class)
+    public ResponseEntity<Map<String, Object>> handlePgUnavailable(RuntimeException ex, WebRequest request) {
+        log.warn("PG 연동 일시 실패: {}", ex.getMessage());
+        return build(HttpStatus.SERVICE_UNAVAILABLE, "PG_UNAVAILABLE", ex.getMessage(), request);
+    }
+
     @ExceptionHandler(AuthorizationDeniedException.class)
     public ResponseEntity<Map<String, Object>> handleAuthorizationDenied(AuthorizationDeniedException ex, WebRequest request) {
         // @PreAuthorize 실패: 토큰이 없으면 401, 있지만 권한(매장 소유권)이 없으면 403

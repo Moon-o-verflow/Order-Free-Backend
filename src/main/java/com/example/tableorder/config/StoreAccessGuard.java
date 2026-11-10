@@ -1,6 +1,7 @@
 package com.example.tableorder.config;
 
 import com.example.tableorder.repository.OrderRepository;
+import com.example.tableorder.repository.PaymentRepository;
 import com.example.tableorder.repository.StoreTableRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -19,6 +20,7 @@ public class StoreAccessGuard {
 
     private final OrderRepository orderRepository;
     private final StoreTableRepository storeTableRepository;
+    private final PaymentRepository paymentRepository;
 
     public boolean owns(Long storeId) {
         OwnerPrincipal owner = currentOwner();
@@ -35,6 +37,12 @@ public class StoreAccessGuard {
         OwnerPrincipal owner = currentOwner();
         return owner != null && tableId != null
                 && storeTableRepository.findStoreIdById(tableId).map(owner::owns).orElse(false);
+    }
+
+    public boolean ownsPayment(Long paymentId) {
+        OwnerPrincipal owner = currentOwner();
+        return owner != null && paymentId != null
+                && paymentRepository.findStoreIdById(paymentId).map(owner::owns).orElse(false);
     }
 
     private static OwnerPrincipal currentOwner() {

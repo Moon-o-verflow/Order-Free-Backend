@@ -128,6 +128,14 @@ public class Payment {
         this.failureMessage = truncate(message, 500);
     }
 
+    /** 전액 취소 확정. 이미 취소됐으면 아무것도 하지 않는다. */
+    public void cancel() {
+        if (status == PaymentStatus.CANCELED) {
+            return;
+        }
+        transitionTo(PaymentStatus.CANCELED);
+    }
+
     /** 승인 결과를 모름 (타임아웃 등). 재승인하지 않고 조회로만 확정한다. */
     public void markUnknown() {
         if (status == PaymentStatus.UNKNOWN) {

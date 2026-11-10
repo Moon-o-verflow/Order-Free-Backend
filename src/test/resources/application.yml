@@ -37,3 +37,8 @@ logging:
   level:
     root: WARN
     com.example.tableorder: INFO
+
+# 결제 복구 배치는 테스트에서 직접 호출한다
+payment:
+  recovery:
+    enabled: false

@@ -91,6 +91,29 @@ public class TossPaymentsClient implements PgClient {
         }
     }
 
+    @Override
+    public PgPayment cancel(String paymentKey, String reason) {
+        try {
+            return restClient.post()
+                    .uri("/v1/payments/{paymentKey}/cancel", paymentKey)
+                    .header("Authorization", authorization())
+                    // 전액 취소는 결제당 한 번뿐이므로 결제 키로 고정. 토스는 같은 키에 첫 응답을 돌려준다
+                    .header("Idempotency-Key", "cancel-" + paymentKey)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of("cancelReason", reason))
+                    .retrieve()
+                    .body(PgPayment.class);
+        } catch (RestClientResponseException e) {
+            TossError err = parseError(e);
+            if (e.getStatusCode().is4xxClientError()) {
+                throw new PgException.Declined(err.code(), err.message());
+            }
+            throw new PgException.ResultUnknown(err.code(), err.message(), e);
+        } catch (RestClientException e) {
+            throw new PgException.ResultUnknown("TIMEOUT", e.getMessage(), e);
+        }
+    }
+
     private String authorization() {
         if (props.secretKey() == null || props.secretKey().isBlank()) {
             throw new IllegalStateException("TOSS_SECRET_KEY가 설정되지 않았습니다.");

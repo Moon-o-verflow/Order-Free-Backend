@@ -45,7 +45,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -64,41 +63,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(MySqlTestcontainersConfig.class)
 class PaymentApprovalMySqlTest {
 
-    static final WireMockServer PG = startPg();
-
-    /** 로컬 루프백에만 바인딩. 포트 바인딩이 일시적으로 실패하는 환경을 위해 몇 번 재시도한다. */
-    private static WireMockServer startPg() {
-        RuntimeException last = null;
-        for (int attempt = 0; attempt < 5; attempt++) {
-            WireMockServer server = new WireMockServer(
-                    wireMockConfig().bindAddress("127.0.0.1").dynamicPort().containerThreads(150));
-            try {
-                server.start();
-                return server;
-            } catch (RuntimeException e) {
-                last = e;
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                }
-            }
-        }
-        throw last;
-    }
+    static final WireMockServer PG = com.example.tableorder.support.PgWireMock.PG;
 
     @AfterAll
     static void stopPg() {
         PG.resetAll();
     }
 
-    /** 테스트를 빠르게 하려고 응답 타임아웃을 1초로 둔다 (운영 기본 3초). */
     @DynamicPropertySource
     static void tossProps(DynamicPropertyRegistry r) {
-        r.add("toss.base-url", PG::baseUrl);
-        r.add("toss.secret-key", () -> "test_sk_dummy");
-        r.add("toss.client-key", () -> "test_ck_dummy");
-        r.add("toss.read-timeout", () -> "PT1S");
+        com.example.tableorder.support.PgWireMock.register(r);
     }
 
     static final String CONFIRM = "/v1/payments/confirm";

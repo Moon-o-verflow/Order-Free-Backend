@@ -136,6 +136,63 @@ public class PaymentTxService {
         return PaymentResponse.from(payment);
     }
 
+    // ------------------------------------------------------------------ 취소 (FR-8)
+
+    /** 취소 대상 확인. 이미 취소됐으면 그 결과를, 아니면 PG 취소에 쓸 결제 키를 돌려준다. */
+    public record CancelTicket(String paymentKey, PaymentResponse alreadyCanceled) {
+    }
+
+    @Transactional(readOnly = true)
+    public CancelTicket cancelTicket(Long paymentId) {
+        Payment payment = load(paymentId);
+        return switch (payment.getStatus()) {
+            case CANCELED -> new CancelTicket(null, PaymentResponse.from(payment));
+            case DONE -> new CancelTicket(payment.getPaymentKey(), null);
+            default -> throw new ConflictException("승인 완료(DONE)된 결제만 취소할 수 있습니다. 현재: " + payment.getStatus());
+        };
+    }
+
+    @Transactional
+    public PaymentResponse markCanceled(Long paymentId) {
+        Payment payment = load(paymentId);
+        payment.cancel();
+        return PaymentResponse.from(payment);
+    }
+
+    // ------------------------------------------------------------------ 웹훅 (FR-7)
+
+    public enum WebhookOutcome { UPDATED, NO_CHANGE, DUPLICATE, UNKNOWN_PAYMENT }
+
+    @Transactional(readOnly = true)
+    public boolean webhookAlreadyProcessed(String eventKey) {
+        return paymentRepository.countWebhookEvent(eventKey) > 0;
+    }
+
+    /**
+     * PG에서 확인한 실제 상태를 반영한다. 이벤트 기록과 상태 변경을 한 트랜잭션에서 하므로,
+     * 반영이 실패하면 이벤트 기록도 롤백되어 PG의 재전송 때 다시 처리된다.
+     */
+    @Transactional
+    public WebhookOutcome applyPgState(String eventKey, PgPayment pg) {
+        if (paymentRepository.recordWebhookEvent(eventKey, LocalDateTime.now()) == 0) {
+            return WebhookOutcome.DUPLICATE;
+        }
+        Payment payment = paymentRepository.findByPgOrderId(pg.orderId()).orElse(null);
+        if (payment == null) {
+            return WebhookOutcome.UNKNOWN_PAYMENT;
+        }
+        PaymentStatus before = payment.getStatus();
+        if (pg.isDone() && before.isPending()) {
+            payment.complete(pg.paymentKey(), pg.method(),
+                    pg.approvedAt() != null ? pg.approvedAt().atZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime() : null);
+        } else if (pg.isCanceled() && before == PaymentStatus.DONE) {
+            payment.cancel(); // 토스 상점관리자에서 직접 취소한 경우 등
+        } else if (pg.isFailed() && before.isPending()) {
+            payment.fail("PG_" + pg.status(), "PG에서 승인되지 않고 종료된 결제");
+        }
+        return payment.getStatus() == before ? WebhookOutcome.NO_CHANGE : WebhookOutcome.UPDATED;
+    }
+
     // ------------------------------------------------------------------ 조회·복구
 
     @Transactional(readOnly = true)
