@@ -1,6 +1,7 @@
 package com.example.tableorder.entity.order;
 
 import com.example.tableorder.entity.store.StoreTable;
+import com.example.tableorder.exception.BusinessRuleException;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -24,8 +25,12 @@ public class Order {
     @JoinColumn(name = "table_id", nullable = false)
     private StoreTable table;
 
-    @Column(nullable = false)
-    private String status;
+    /** 상태 변경은 {@link #changeStatus(OrderStatus)} 로만 한다. */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Setter(AccessLevel.NONE)
+    @Builder.Default
+    private OrderStatus status = OrderStatus.ORDERED;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -42,6 +47,25 @@ public class Order {
         return orderItems.stream()
                 .mapToInt(item -> item.getUnitPrice() * item.getQuantity())
                 .sum();
+    }
+
+    /**
+     * 허용된 전이만 수행한다. 같은 상태로의 변경은 아무 일도 하지 않는다.
+     *
+     * @throws BusinessRuleException 허용되지 않은 전이일 때
+     */
+    public void changeStatus(OrderStatus next) {
+        if (next == null) {
+            throw new BusinessRuleException("변경할 주문 상태가 없습니다.");
+        }
+        if (status == next) {
+            return;
+        }
+        if (!status.canTransitionTo(next)) {
+            throw new BusinessRuleException(
+                    "주문 상태를 " + status + "에서 " + next + "(으)로 바꿀 수 없습니다. 가능한 상태: " + status.nextStatuses());
+        }
+        status = next;
     }
 
     // 주문 항목 추가 메서드

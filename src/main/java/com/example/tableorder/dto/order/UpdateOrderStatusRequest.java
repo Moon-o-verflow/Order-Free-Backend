@@ -6,5 +6,5 @@ import lombok.*;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class UpdateOrderStatusRequest {
     @NotBlank
-    private String status; // 예: Received / Preparing / Done / Cancelled
+    private String status; // ORDERED | PREPARING | SERVED | COMPLETED | CANCELLED
 }

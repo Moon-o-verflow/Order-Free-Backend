@@ -11,5 +11,5 @@ import lombok.Setter;
 public class OrderStatusUpdateDto {
 
     @NotBlank
-    private String status;  // "SERVED" | "COMPLETED"
+    private String status;  // ORDERED | PREPARING | SERVED | COMPLETED | CANCELLED
 }

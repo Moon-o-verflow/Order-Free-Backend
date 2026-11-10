@@ -1,5 +1,7 @@
 package com.example.tableorder.service;
 
+import com.example.tableorder.entity.order.OrderStatus;
+
 import com.example.tableorder.dto.OrderRequestDto;
 import com.example.tableorder.dto.OrderResponseDto;
 import com.example.tableorder.dto.OrderStatusUpdateDto;
@@ -77,7 +79,7 @@ public class AdminOrderService {
 
         Order order = Order.builder()
                 .table(table)
-                .status("PREPARING")
+                .status(OrderStatus.ORDERED)
                 .totalPrice(0)
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -136,7 +138,7 @@ public class AdminOrderService {
 
     /**
      * 주문 상태 변경.
-     * - 합법 전이만 허용 (PREPARING → SERVED → COMPLETED).
+     * - 허용 전이는 {@link OrderStatus#nextStatuses()} 참고.
      * @param storeId 가게 ID
      * @param orderId 주문 ID
      * @param dto 상태 DTO
@@ -151,18 +153,8 @@ public class AdminOrderService {
             throw new BusinessRuleException("주문 소속 불일치");
         }
 
-        String currentStatus = order.getStatus();
-        String newStatus = dto.getStatus();
-
-        if ("SERVED".equals(newStatus) && !"PREPARING".equals(currentStatus)) {
-            throw new BusinessRuleException("PREPARING에서만 SERVED로 전이 가능");
-        }
-        if ("COMPLETED".equals(newStatus) && !"SERVED".equals(currentStatus)) {
-            throw new BusinessRuleException("SERVED에서만 COMPLETED로 전이 가능");
-        }
-
-        order.setStatus(newStatus);
-        adminOrderRepository.save(order);
+        OrderStatus newStatus = OrderStatus.from(dto.getStatus());
+        order.changeStatus(newStatus);
 
         log.info("주문 상태 변경: storeId={}, orderId={}, newStatus={}", storeId, orderId, newStatus);
         eventBroadcaster.publish("ws.orders." + storeId + ".status.changed");

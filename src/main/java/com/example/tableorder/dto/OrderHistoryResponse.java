@@ -1,5 +1,7 @@
 package com.example.tableorder.dto;
 
+import com.example.tableorder.entity.order.OrderStatus;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -12,7 +14,7 @@ public class OrderHistoryResponse {
 
     private Long orderId; // 주문 번호
     private LocalDateTime orderTime; // 주문 시간
-    private String orderStatus; // 주문 상태(주문 접수, 조리중, 완료)
+    private OrderStatus orderStatus;
     private Integer totalItemCount; // 총 주문 건 수
     private Integer totalAmount; // 총 결제 금액
 

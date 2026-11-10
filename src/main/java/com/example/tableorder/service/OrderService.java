@@ -1,5 +1,7 @@
 package com.example.tableorder.service;
 
+import com.example.tableorder.entity.order.OrderStatus;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +60,7 @@ public class OrderService {
         // 5.Order 엔티티 생성
         Order order = Order.builder()
                 .table(storeTable)
-                .status("ORDERED")
+                .status(OrderStatus.ORDERED)
                 .createdAt(LocalDateTime.now())
                 .totalPrice(totalAmount) // 🔥 DB에 저장될 총액
                 .orderItems(new ArrayList<>()) // 명시적으로 초기화

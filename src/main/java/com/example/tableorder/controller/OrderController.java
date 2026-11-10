@@ -64,7 +64,7 @@ public class OrderController {
                     .storeId(storeId)
                     .tableId(tableId)
                     .orderId(response.getOrderId())
-                    .orderStatus("주문접수")
+                    .orderStatus(response.getStatus().label())
                     .userName("사용자") // 실제로는 JWT에서 사용자 정보 추출
                     .timestamp(System.currentTimeMillis())
                     .message("새로운 주문이 접수되었습니다")

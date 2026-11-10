@@ -16,7 +16,8 @@ public interface OrderWaitingRepository extends JpaRepository<Order, Long> {
         left join fetch o.orderItems oi
         left join fetch oi.menuItem mi
         where t.store.id = :storeId
-          and (o.status not in ('Done','완료','Cancelled'))
+          and o.status not in (com.example.tableorder.entity.order.OrderStatus.COMPLETED,
+                               com.example.tableorder.entity.order.OrderStatus.CANCELLED)
         order by o.createdAt asc, o.id asc
     """)
     List<Order> findActiveOrdersForStore(@Param("storeId") Long storeId);

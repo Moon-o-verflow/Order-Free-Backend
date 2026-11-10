@@ -57,6 +57,11 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(ex, "INTERNAL_ERROR", HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
 
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<Map<String, Object>> handleBadRequest(BadRequestException ex, WebRequest request) {
+        return buildErrorResponse(ex, "BAD_REQUEST", HttpStatus.BAD_REQUEST, request);
+    }
+
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<Map<String, Object>> handleValidation(ValidationException ex, WebRequest request) {
         return buildErrorResponse(ex, "VALIDATION_ERROR", HttpStatus.BAD_REQUEST, request);

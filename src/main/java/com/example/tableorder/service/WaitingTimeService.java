@@ -1,5 +1,7 @@
 package com.example.tableorder.service;
 
+import com.example.tableorder.entity.order.OrderStatus;
+
 import com.example.tableorder.dto.waiting.OrderWaitingTimeDto;
 import com.example.tableorder.dto.waiting.SingleWaitingTimeDto;
 import com.example.tableorder.entity.order.Order;
@@ -19,16 +21,14 @@ public class WaitingTimeService {
 
     private final OrderWaitingRepository orderWaitingRepository;
 
-    // 상태 보정 계수
-    private static final Map<String, Double> STATUS_FACTOR = Map.ofEntries(
-            Map.entry("Received", 1.0),
-            Map.entry("주문접수", 1.0),
-            Map.entry("Preparing", 0.6),
-            Map.entry("조리중", 0.6),
-            Map.entry("Done", 0.0),
-            Map.entry("완료", 0.0),
-            Map.entry("Cancelled", 0.0)
-    );
+    // 상태 보정 계수: 남은 작업 비율
+    private static double statusFactor(OrderStatus status) {
+        return switch (status) {
+            case ORDERED -> 1.0;
+            case PREPARING -> 0.6;
+            case SERVED, COMPLETED, CANCELLED -> 0.0;
+        };
+    }
 
     // 동시 작업(바리스타/주방 병렬) 고려
     private static final double CONCURRENCY_COEFF = 0.6;
@@ -98,9 +98,7 @@ public class WaitingTimeService {
                 base += (double) prep * qty;
             }
         }
-        double statusFactor = STATUS_FACTOR.getOrDefault(safe(o.getStatus()), 1.0);
-        return base * statusFactor;
+        return base * statusFactor(o.getStatus());
     }
 
-    private String safe(String s) { return s == null ? "" : s; }
 }

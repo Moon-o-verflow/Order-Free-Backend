@@ -1,5 +1,7 @@
 package com.example.tableorder.dto;
 
+import com.example.tableorder.entity.order.OrderStatus;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +18,7 @@ public class OrderResponseDto {
 
     private Long tableId;
 
-    private String status;  // "PREPARING" | "SERVED" | "COMPLETED"
+    private OrderStatus status;
 
     private Integer totalPrice;
 

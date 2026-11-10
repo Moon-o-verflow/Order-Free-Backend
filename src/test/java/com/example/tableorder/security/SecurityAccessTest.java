@@ -11,6 +11,7 @@ import com.example.tableorder.controller.StoreController;
 import com.example.tableorder.controller.TableDeleteController;
 import com.example.tableorder.dto.CartDetailResponse;
 import com.example.tableorder.dto.order.UpdateOrderStatusResponse;
+import com.example.tableorder.entity.order.OrderStatus;
 import com.example.tableorder.repository.OrderRepository;
 import com.example.tableorder.repository.StoreTableRepository;
 import com.example.tableorder.service.AdminMenuService;
@@ -152,7 +153,7 @@ class SecurityAccessTest {
     @Test
     void orderStatusChecksOrderStore() throws Exception {
         when(orderStatusService.updateOrderStatus(eq(10L), anyString()))
-                .thenReturn(UpdateOrderStatusResponse.builder().orderId(10L).status("SERVED").build());
+                .thenReturn(UpdateOrderStatusResponse.builder().orderId(10L).status(OrderStatus.SERVED).build());
         String body = "{\"status\":\"SERVED\"}";
 
         mvc.perform(patch("/api/orders/10/status").header("Authorization", store1Owner)

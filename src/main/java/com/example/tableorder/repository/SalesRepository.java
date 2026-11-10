@@ -23,6 +23,7 @@ public interface SalesRepository extends JpaRepository<Order, Long> {
         left join o.orderItems oi
         where t.store.id = :storeId
           and o.createdAt between :start and :end
+          and o.status <> com.example.tableorder.entity.order.OrderStatus.CANCELLED
         group by function('date', o.createdAt)
         order by function('date', o.createdAt) asc
     """)
@@ -46,6 +47,7 @@ public interface SalesRepository extends JpaRepository<Order, Long> {
         left join oi.menuItem mi
         where t.store.id = :storeId
           and o.createdAt between :start and :end
+          and o.status <> com.example.tableorder.entity.order.OrderStatus.CANCELLED
         group by mi.id, oi.menuName
         order by coalesce(sum(oi.unitPrice * oi.quantity), 0) desc
     """)
@@ -66,6 +68,7 @@ public interface SalesRepository extends JpaRepository<Order, Long> {
         left join o.orderItems oi
         where t.store.id = :storeId
           and o.createdAt between :start and :end
+          and o.status <> com.example.tableorder.entity.order.OrderStatus.CANCELLED
         group by t.id
         order by t.id asc
     """)

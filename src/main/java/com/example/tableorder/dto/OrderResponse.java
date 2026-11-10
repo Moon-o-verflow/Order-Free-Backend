@@ -1,5 +1,7 @@
 package com.example.tableorder.dto;
 
+import com.example.tableorder.entity.order.OrderStatus;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,7 +25,7 @@ public class OrderResponse {
 
     @NotNull
     @Schema(description = "주문 상태", example = "ORDERED")
-    private String status;
+    private OrderStatus status;
 
     @NotNull
     @Schema(description = "주문 생성 시간", example = "2024-01-15T14:30:00")
