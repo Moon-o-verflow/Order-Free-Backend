@@ -56,12 +56,8 @@ public class CartController {
             @Parameter(description = "매장 ID", example = "1") @PathVariable Long storeId,
             @Parameter(description = "테이블 ID", example = "5") @PathVariable Long tableId,
             @Parameter(description = "장바구니 추가 요청 정보") @RequestBody CartItemAddRequest request) {
-        try {
-            CartItemAddResponse response = cartItemService.cartItemCreate(storeId, tableId, request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        CartItemAddResponse response = cartItemService.cartItemCreate(storeId, tableId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping
@@ -83,12 +79,8 @@ public class CartController {
     public ResponseEntity<CartDetailResponse> getCartItem(
             @Parameter(description = "매장 ID", example = "1") @PathVariable Long storeId,
             @Parameter(description = "테이블 ID", example = "5") @PathVariable Long tableId) {
-        try {
-            CartDetailResponse response = cartItemService.getCart(storeId, tableId);
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        }
+        CartDetailResponse response = cartItemService.getCart(storeId, tableId);
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{cartItemId}")
@@ -114,17 +106,7 @@ public class CartController {
             @Parameter(description = "매장 ID", example = "1") @PathVariable Long storeId,
             @Parameter(description = "테이블 ID", example = "5") @PathVariable Long tableId,
             @Parameter(description = "삭제할 장바구니 아이템 ID", example = "10") @PathVariable Long cartItemId) {
-        try {
-            cartItemService.deleteCartItem(storeId, tableId, cartItemId);
-            return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException e) {
-            // 에러 메시지에 따라 적절한 HTTP 상태 코드 반환
-            if (e.getMessage().contains("존재하지 않는 테이블")
-                    || e.getMessage().contains("장바구니가 존재하지 않습니다")) {
-                return ResponseEntity.notFound().build();
-            } else {
-                return ResponseEntity.badRequest().build();
-            }
-        }
+        cartItemService.deleteCartItem(storeId, tableId, cartItemId);
+        return ResponseEntity.noContent().build();
     }
 }

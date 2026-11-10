@@ -42,3 +42,6 @@ package-lock.json
 .env
 set-env.bat
 *.pem
+
+### macOS ###
+.DS_Store

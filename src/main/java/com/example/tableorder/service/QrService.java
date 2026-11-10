@@ -4,6 +4,7 @@ import com.example.tableorder.dto.QrCodeRequestDto;
 import com.example.tableorder.dto.QrCodeResponseDto;
 import com.example.tableorder.entity.store.StoreTable;
 import com.example.tableorder.exception.NotFoundException;
+import com.example.tableorder.exception.InternalErrorException;
 import com.example.tableorder.repository.StoreTableRepository;
 import com.example.tableorder.util.QrGenerator;
 import lombok.RequiredArgsConstructor;
@@ -63,7 +64,7 @@ public class QrService {
         try {
             base64 = qrGenerator.generateQrCodeBase64(payloadUrl, size);
         } catch (Exception e) {
-            throw new RuntimeException("QR 생성 실패: " + e.getMessage());
+            throw new InternalErrorException("QR 생성 실패: " + e.getMessage());
         }
 
         redisTemplate.opsForValue().set(cacheKey, base64, CACHE_TTL_HOURS, TimeUnit.HOURS);

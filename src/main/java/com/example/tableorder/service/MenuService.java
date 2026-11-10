@@ -1,5 +1,7 @@
 package com.example.tableorder.service;
 
+import com.example.tableorder.exception.NotFoundException;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -69,7 +71,7 @@ public class MenuService {
 
         // 카테고리 정보 조회
         Category category = categoryRepository.findByIdAndStoreId(categoryId, storeId)
-                .orElseThrow(() -> new RuntimeException("카테고리를 찾을 수 없습니다: " + categoryId));
+                .orElseThrow(() -> new NotFoundException("카테고리를 찾을 수 없습니다: " + categoryId));
 
         // 카테고리별 메뉴 응답 생성
         List<CategoryMenuResponse> categoryMenus = Collections.singletonList(

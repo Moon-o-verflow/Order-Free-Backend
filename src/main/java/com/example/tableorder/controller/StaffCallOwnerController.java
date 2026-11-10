@@ -68,12 +68,8 @@ public class StaffCallOwnerController {
             )
             @Valid @RequestBody StaffCallTypeRequest request) {
 
-        try {
-            StaffCallTypeResponse response = staffCallOwnerService.staffCallTypeCreate(storeId, request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        StaffCallTypeResponse response = staffCallOwnerService.staffCallTypeCreate(storeId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/staff-call-types")
@@ -104,12 +100,8 @@ public class StaffCallOwnerController {
             )
             @PathVariable Long storeId) {
 
-        try {
-            List<StaffCallTypeResponse> response = staffCallOwnerService.getStaffCallTypes(storeId);
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        }
+        List<StaffCallTypeResponse> response = staffCallOwnerService.getStaffCallTypes(storeId);
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/staff-call-types/{id}")
@@ -144,12 +136,8 @@ public class StaffCallOwnerController {
             )
             @Valid @RequestBody StaffCallTypeRequest request) {
 
-        try {
-            StaffCallTypeResponse response = staffCallOwnerService.staffCallTypeUpdate(storeId, id, request);
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        StaffCallTypeResponse response = staffCallOwnerService.staffCallTypeUpdate(storeId, id, request);
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/staff-call-types/{id}")
@@ -168,12 +156,8 @@ public class StaffCallOwnerController {
             @Parameter(description = "삭제할 직원 호출 타입 ID", example = "10")
             @PathVariable Long id
     ) {
-        try {
-            staffCallOwnerService.deleteStaffCallType(storeId, id);
-            return ResponseEntity.noContent().build(); // HTTP 204
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        }
+        staffCallOwnerService.deleteStaffCallType(storeId, id);
+        return ResponseEntity.noContent().build(); // HTTP 204
     }
 
 }

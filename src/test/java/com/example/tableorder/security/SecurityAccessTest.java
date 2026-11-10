@@ -18,7 +18,6 @@ import com.example.tableorder.service.AdminMenuService;
 import com.example.tableorder.service.CartItemService;
 import com.example.tableorder.service.OrderService;
 import com.example.tableorder.service.OrderStatusService;
-import com.example.tableorder.service.RealtimeStatsService;
 import com.example.tableorder.service.StoreService;
 import com.example.tableorder.service.TableDeleteService;
 import com.example.tableorder.support.JwtTokens;
@@ -71,7 +70,6 @@ class SecurityAccessTest {
     @MockBean OrderStatusService orderStatusService;
     @MockBean StoreService storeService;
     @MockBean TableDeleteService tableDeleteService;
-    @MockBean RealtimeStatsService realtimeStatsService;
     @MockBean EventBroadcaster eventBroadcaster;
     @MockBean OrderRepository orderRepository;
     @MockBean StoreTableRepository storeTableRepository;

@@ -1,5 +1,9 @@
 package com.example.tableorder.service;
 
+import com.example.tableorder.exception.NotFoundException;
+
+import com.example.tableorder.exception.BadRequestException;
+
 import com.example.tableorder.entity.menu.MenuItem;
 
 import com.example.tableorder.entity.order.OrderStatus;
@@ -42,17 +46,17 @@ public class OrderService {
 
         // 1. 테이블 조회
         StoreTable storeTable = storeTableRepository.findByStore_IdAndId(storeId, tableId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 테이블"));
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 테이블"));
 
         // 2. 장바구니 조회
         Cart cart = cartRepository.findByTable(storeTable)
-                .orElseThrow(() -> new IllegalArgumentException("장바구니가 비어있습니다."));
+                .orElseThrow(() -> new BadRequestException("장바구니가 비어있습니다."));
 
         // 3. 장바구니 아이템들 조회
         List<CartItem> cartItems = cartItemRepository.findByCart(cart);
 
         if (cartItems.isEmpty()) {
-            throw new IllegalArgumentException("주문할 상품이 없습니다.");
+            throw new BadRequestException("주문할 상품이 없습니다.");
         }
 
         // 4. 품절·재고 확인 및 차감, 현재 메뉴 가격으로 총액 계산
@@ -140,7 +144,7 @@ public class OrderService {
 
         // 1. 테이블 조회 (유효성 검증용)
         storeTableRepository.findByStore_IdAndId(storeId, tableId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 테이블"));
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 테이블"));
 
         // 2. 12시간 이내 주문내역 조회
         LocalDateTime cutoffTime = LocalDateTime.now().minusHours(12);

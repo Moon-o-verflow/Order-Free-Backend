@@ -1,5 +1,9 @@
 package com.example.tableorder.service;
 
+import com.example.tableorder.exception.NotFoundException;
+
+import com.example.tableorder.exception.BadRequestException;
+
 import com.example.tableorder.dto.CartDetailResponse;
 import com.example.tableorder.dto.CartItemAddRequest;
 import com.example.tableorder.dto.CartItemAddResponse;
@@ -31,21 +35,21 @@ public class CartItemService {
 
         // 입력검증 강화
         if (request.getMenuItemId() == null) {
-            throw new IllegalArgumentException("메뉴 아이템 ID는 필수입니다.");
+            throw new BadRequestException("메뉴 아이템 ID는 필수입니다.");
         }
         if (request.getQuantity() == null || request.getQuantity() <= 0) {
-            throw new IllegalArgumentException("수량은 1 이상이어야 합니다.");
+            throw new BadRequestException("수량은 1 이상이어야 합니다.");
         }
         String lang = (request.getLang() == null || request.getLang().isBlank()) ? "ko" : request.getLang();
 
         // StoreTable 조회
-        StoreTable storeTable = storeTableRepository.findByStore_IdAndId(storeId, tableId).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 테이블"));
+        StoreTable storeTable = storeTableRepository.findByStore_IdAndId(storeId, tableId).orElseThrow(() -> new NotFoundException("존재하지 않는 테이블"));
 
         // 장바구니 조회, 없으면 생성
         Cart cart = cartRepository.findByTable(storeTable).orElseGet(() -> cartRepository.save(Cart.builder().table(storeTable).build()));
 
         // 메뉴 조회
-        MenuItem menuItem = menuRepository.findByIdAndCategoryStoreId(request.getMenuItemId(),storeId).orElseThrow(() -> new IllegalArgumentException("해당 매장의 메뉴가 존재하지 않습니다"));
+        MenuItem menuItem = menuRepository.findByIdAndCategoryStoreId(request.getMenuItemId(),storeId).orElseThrow(() -> new NotFoundException("해당 매장의 메뉴가 존재하지 않습니다"));
 
         // 메뉴 가격 가져오기
         int price = menuItem.getPrice();
@@ -82,13 +86,13 @@ public class CartItemService {
 
     @Transactional
     public CartDetailResponse getCart(Long storeId, Long tableId) {
-        StoreTable storeTable = storeTableRepository.findByStore_IdAndId(storeId, tableId).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 테이블"));
+        StoreTable storeTable = storeTableRepository.findByStore_IdAndId(storeId, tableId).orElseThrow(() -> new NotFoundException("존재하지 않는 테이블"));
 
-        Cart cart = cartRepository.findByTable(storeTable).orElseThrow(() -> new IllegalArgumentException("장바구니가 존재하지 않습니다."));
+        // 아직 담은 적이 없거나(장바구니 없음) 비어 있으면 빈 장바구니로 응답
+        List<CartItem> cartItems = cartRepository.findByTable(storeTable)
+                .map(cartItemRepository::findByCart)
+                .orElse(List.of());
 
-        List<CartItem> cartItems = cartItemRepository.findByCart(cart);
-
-        // 빈 장바구니일 때는 빈 응답 반환 (예외 대신)
         if (cartItems.isEmpty()) {
             return CartDetailResponse.builder().items(List.of()).cartTotalPrice(0).build();
         }
@@ -107,11 +111,11 @@ public class CartItemService {
 
     public void deleteCartItem(Long storeId, Long tableId, Long cartItemId) {
         // 1. 테이블 확인
-        StoreTable storeTable = storeTableRepository.findByStore_IdAndId(storeId, tableId).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 테이블"));
+        StoreTable storeTable = storeTableRepository.findByStore_IdAndId(storeId, tableId).orElseThrow(() -> new NotFoundException("존재하지 않는 테이블"));
         // 2. 장바구니 조회
-        Cart cart = cartRepository.findByTable(storeTable).orElseThrow(() -> new IllegalArgumentException("장바구니가 존재하지 않습니다"));
+        Cart cart = cartRepository.findByTable(storeTable).orElseThrow(() -> new NotFoundException("장바구니가 존재하지 않습니다"));
         // 3. 삭제할 아이템 조회 및 검증
-        CartItem cartItem = cartItemRepository.findByIdAndCartId(cartItemId,cart.getId()).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 장바구니 아이템"));
+        CartItem cartItem = cartItemRepository.findByIdAndCartId(cartItemId,cart.getId()).orElseThrow(() -> new NotFoundException("존재하지 않는 장바구니 아이템"));
         // 4. 삭제 실행
         cartItemRepository.delete(cartItem);
     }

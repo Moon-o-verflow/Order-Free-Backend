@@ -56,31 +56,23 @@ public class OrderController {
             @Parameter(description = "매장 ID", example = "1") @PathVariable Long storeId,
             @Parameter(description = "테이블 ID", example = "5") @PathVariable Long tableId) {
 
-        try {
-            OrderResponse response = orderService.createOrder(storeId, tableId);
+        OrderResponse response = orderService.createOrder(storeId, tableId);
 
-            // 실시간 이벤트 전송: 주문 상태 변경 (주문 접수)
-            OrderStatusChangedEvent orderEvent = OrderStatusChangedEvent.builder()
-                    .storeId(storeId)
-                    .tableId(tableId)
-                    .orderId(response.getOrderId())
-                    .orderStatus(response.getStatus().label())
-                    .userName("사용자") // 실제로는 JWT에서 사용자 정보 추출
-                    .timestamp(System.currentTimeMillis())
-                    .message("새로운 주문이 접수되었습니다")
-                    .build();
+        // 실시간 이벤트 전송: 주문 상태 변경 (주문 접수)
+        OrderStatusChangedEvent orderEvent = OrderStatusChangedEvent.builder()
+                .storeId(storeId)
+                .tableId(tableId)
+                .orderId(response.getOrderId())
+                .orderStatus(response.getStatus().label())
+                .userName("사용자") // 실제로는 JWT에서 사용자 정보 추출
+                .timestamp(System.currentTimeMillis())
+                .message("새로운 주문이 접수되었습니다")
+                .build();
 
-            // 해당 테이블에만 이벤트 전송
-            eventBroadcaster.publishToTable("order.status.changed", orderEvent, storeId, tableId);
+        // 해당 테이블에만 이벤트 전송
+        eventBroadcaster.publishToTable("order.status.changed", orderEvent, storeId, tableId);
 
-            // 주문 진행 중인 사용자 수 알림
-            notifyOrderingUsers(storeId, tableId);
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (IllegalArgumentException e) {
-            System.err.println("주문 생성 오류: " + e.getMessage());
-            return ResponseEntity.badRequest().build();
-        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping
@@ -103,38 +95,8 @@ public class OrderController {
             @Parameter(description = "매장 ID", example = "1") @PathVariable Long storeId,
             @Parameter(description = "테이블 ID", example = "5") @PathVariable Long tableId) {
 
-        try {
-            List<OrderHistoryResponse> response = orderService.getOrderHistory(storeId, tableId);
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    /**
-     * 주문 진행 중인 사용자 수 알림
-     */
-    private void notifyOrderingUsers(Long storeId, Long tableId) {
-        try {
-            // 실제로는 서비스에서 현재 주문 진행 중인 사용자 수를 조회해야 함
-            // 여기서는 예시로 랜덤한 수 생성
-            int orderingUserCount = (int) (Math.random() * 5) + 1; // 1~5명
-
-            OrderStatusChangedEvent orderingEvent = OrderStatusChangedEvent.builder()
-                    .storeId(storeId)
-                    .tableId(tableId)
-                    .orderId(null)
-                    .orderStatus("주문진행중")
-                    .userName("시스템")
-                    .timestamp(System.currentTimeMillis())
-                    .message("현재 " + orderingUserCount + "명이 주문을 진행 중입니다")
-                    .build();
-
-            // 해당 테이블에만 이벤트 전송
-            eventBroadcaster.publishToTable("order.ordering.users", orderingEvent, storeId, tableId);
-        } catch (Exception e) {
-            System.err.println("주문 진행 중 사용자 수 알림 실패: " + e.getMessage());
-        }
+        List<OrderHistoryResponse> response = orderService.getOrderHistory(storeId, tableId);
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -152,21 +114,17 @@ public class OrderController {
             @Parameter(description = "품절된 메뉴 ID") @RequestParam Long menuId,
             @Parameter(description = "품절된 메뉴명") @RequestParam String menuName) {
 
-        try {
-            MenuOutOfStockEvent outOfStockEvent = MenuOutOfStockEvent.builder()
-                    .storeId(storeId)
-                    .menuId(menuId)
-                    .menuName(menuName)
-                    .message("오늘 " + menuName + "이 품절되었습니다")
-                    .timestamp(System.currentTimeMillis())
-                    .build();
+        MenuOutOfStockEvent outOfStockEvent = MenuOutOfStockEvent.builder()
+                .storeId(storeId)
+                .menuId(menuId)
+                .menuName(menuName)
+                .message("오늘 " + menuName + "이 품절되었습니다")
+                .timestamp(System.currentTimeMillis())
+                .build();
 
-            // 해당 테이블에만 이벤트 전송
-            eventBroadcaster.publishToTable("menu.out.of.stock", outOfStockEvent, storeId, tableId);
+        // 해당 테이블에만 이벤트 전송
+        eventBroadcaster.publishToTable("menu.out.of.stock", outOfStockEvent, storeId, tableId);
 
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
+        return ResponseEntity.ok().build();
     }
 }

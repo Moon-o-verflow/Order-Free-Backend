@@ -30,13 +30,8 @@ public class StaffCallCustomerController {
             @ApiResponse(responseCode = "404", description = "해당 매장을 찾을 수 없음")
     })
     public ResponseEntity<List<StaffCallTypeResponse>> getStaffCallTypes(@PathVariable("storeId") Long storeId) {
-        try{
-            List<StaffCallTypeResponse> responses = staffCallCustomerService.getStaffCallTypes(storeId);
-            return ResponseEntity.ok(responses);
-        }
-        catch (IllegalArgumentException e){
-            return ResponseEntity.notFound().build();
-        }
+        List<StaffCallTypeResponse> responses = staffCallCustomerService.getStaffCallTypes(storeId);
+        return ResponseEntity.ok(responses);
     }
 
     @PostMapping("/staff-call")
@@ -47,12 +42,8 @@ public class StaffCallCustomerController {
             @ApiResponse(responseCode="404",description = "해당 매장을 찾을 수 없음")
     })
     public ResponseEntity<StaffCallResponse> doStaffCall(@PathVariable("storeId") Long storeId, @Valid @RequestBody StaffCallRequest request){
-        try{
-            StaffCallResponse response = staffCallCustomerService.doStaffCall(storeId,request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch(IllegalArgumentException e){
-            return ResponseEntity.badRequest().build();
-        }
+        StaffCallResponse response = staffCallCustomerService.doStaffCall(storeId,request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
 

@@ -69,15 +69,9 @@ public class StoreService {
      * @return StoreResponseDto
      */
     public StoreResponseDto getStore(Long storeId) {
-        try {
-            Store store = storeRepository.findById(storeId)
-                    .orElseThrow(() -> new NotFoundException("가게 없음"));
-            log.info("가게 조회 성공: id={}", storeId);  // 디버깅 로그 추가
-            return toStoreResponseDto(store);
-        } catch (Exception e) {
-            log.error("가게 조회 실패: id={}, error={}", storeId, e.getMessage(), e);  // 구체적 에러 로그
-            throw new RuntimeException("가게 조회 중 오류 발생: " + e.getMessage(), e);
-        }
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new NotFoundException("가게 없음"));
+        return toStoreResponseDto(store);
     }
 
     /**

@@ -1,5 +1,7 @@
 package com.example.tableorder.service;
 
+import com.example.tableorder.exception.NotFoundException;
+
 
 import com.example.tableorder.dto.StaffCallRequest;
 import com.example.tableorder.dto.StaffCallResponse;
@@ -39,7 +41,7 @@ public class StaffCallCustomerService {
     public List<StaffCallTypeResponse> getStaffCallTypes(Long storeId){
         // 1. 매장 존재여부 확인
         Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 매장이 존재하지 않습니다."));
+                .orElseThrow(() -> new NotFoundException("해당 매장이 존재하지 않습니다."));
 
         // 2. 해당 매장의 모든 직원호출 타입 조회 (점주와 다르게 활성화된 것만 가져옴)
         List<StaffCallType> staffCallTypes = staffCallTypeRepository.findByStoreAndActiveTrue(store);
@@ -54,15 +56,15 @@ public class StaffCallCustomerService {
 
         // 1. 해당 매장 조회
         Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 매장이 존재하지 않습니다."));
+                .orElseThrow(() -> new NotFoundException("해당 매장이 존재하지 않습니다."));
 
         // 2. 해당 매장의 직원 호출 타입 조회
         StaffCallType staffCallType = staffCallTypeRepository.findByStoreAndId(store,request.getCallTypeId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 매장의 호출 타입이 존재하지 않습니다."));
+                .orElseThrow(() -> new NotFoundException("해당 매장의 호출 타입이 존재하지 않습니다."));
 
         // 3. 테이블 조회 (손님이 요청한 tableId가 그 매장에 속하는지 확인)
         StoreTable table = storeTableRepository.findByStore_IdAndId(storeId, request.getTableId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 매장의 테이블이 존재하지 않습니다."));
+                .orElseThrow(() -> new NotFoundException("해당 매장의 테이블이 존재하지 않습니다."));
 
         // 4. staffcall 엔티티 저장
         StaffCall staffCall = StaffCall.builder()
