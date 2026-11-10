@@ -1,0 +1,66 @@
+# 로컬 실행용 설정 예시. 이 파일을 같은 폴더에 application.yml 로 복사해서 쓴다 (application.yml 은 git 미추적).
+# 값은 모두 환경변수(.env)에서 읽는다.
+
+spring:
+  application:
+    name: Table Order API
+
+  # HTTP 인코딩 설정
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+  datasource:
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+    username: ${DB_USER}
+    password: ${DB_PASS}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+    show-sql: false
+    open-in-view: false
+
+  jackson:
+    time-zone: Asia/Seoul
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    clean-disabled: true
+    table: flyway_schema_history
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  security:
+    jwt:
+      secret: ${JWT_SECRET}
+      issuer: tableorder-app
+
+# Springdoc 설정
+springdoc:
+  swagger-ui:
+    enabled: true
+    oauth2RedirectUrl: http://localhost:8080/swagger-ui/oauth2-redirect.html  # 인증 리다이렉트 URL
+  api-docs:
+    enabled: true
+
+# 디버깅 로그
+logging:
+  level:
+    com.example.tableorder: INFO
+# 토스페이먼츠 (키는 .env 의 TOSS_SECRET_KEY / TOSS_CLIENT_KEY)
+toss:
+  secret-key: ${TOSS_SECRET_KEY:}
+  client-key: ${TOSS_CLIENT_KEY:}
