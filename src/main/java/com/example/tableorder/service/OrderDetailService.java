@@ -6,7 +6,7 @@ import com.example.tableorder.entity.payment.Payment;
 import com.example.tableorder.exception.NotFoundException;
 import com.example.tableorder.repository.OrderDetailRepository;
 import com.example.tableorder.repository.PaymentRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ public class OrderDetailService {
     private final OrderDetailRepository orderDetailRepository;
     private final PaymentRepository paymentRepository;
 
-    @Transactional
+    @Transactional(readOnly = true)
     public OrderDetailDto getOrderDetail(Long orderId) {
         Order o = orderDetailRepository.findByIdWithItems(orderId)
                 .orElseThrow(() -> new NotFoundException("Order not found: " + orderId));

@@ -139,7 +139,7 @@ public class OrderService {
                 .build();
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<OrderHistoryResponse> getOrderHistory(Long storeId, Long tableId) {
 
         // 1. 테이블 조회 (유효성 검증용)

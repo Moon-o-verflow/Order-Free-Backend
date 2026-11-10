@@ -8,7 +8,7 @@ import com.example.tableorder.exception.BadRequestException;
 import com.example.tableorder.exception.NotFoundException;
 import com.example.tableorder.repository.StoreRepository;
 import com.example.tableorder.repository.StoreTableRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

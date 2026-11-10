@@ -5,7 +5,7 @@ import com.example.tableorder.entity.store.StoreTable;
 import com.example.tableorder.exception.BadRequestException;
 import com.example.tableorder.exception.NotFoundException;
 import com.example.tableorder.repository.StoreTableRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;

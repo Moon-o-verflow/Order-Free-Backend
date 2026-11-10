@@ -3,7 +3,7 @@ package com.example.tableorder.service;
 import com.example.tableorder.entity.store.StoreTable;
 import com.example.tableorder.exception.NotFoundException;
 import com.example.tableorder.repository.StoreTableRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

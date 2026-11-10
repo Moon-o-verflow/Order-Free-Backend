@@ -9,7 +9,7 @@ import com.example.tableorder.entity.order.OrderItem;
 import com.example.tableorder.entity.menu.MenuItem;
 import com.example.tableorder.exception.NotFoundException;
 import com.example.tableorder.repository.OrderWaitingRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +34,7 @@ public class WaitingTimeService {
     private static final double CONCURRENCY_COEFF = 0.6;
 
     // 14) 매장 전체 대기시간 예측
-    @Transactional
+    @Transactional(readOnly = true)
     public List<OrderWaitingTimeDto> getWaitingTimesForStore(Long storeId) {
         List<Order> queue = orderWaitingRepository.findActiveOrdersForStore(storeId);
 
@@ -62,7 +62,7 @@ public class WaitingTimeService {
     }
 
     // 15) 개별 주문 대기시간 예측
-    @Transactional
+    @Transactional(readOnly = true)
     public SingleWaitingTimeDto getWaitingTimeForOrder(Long orderId) {
         Order target = orderWaitingRepository.findByIdWithItems(orderId)
                 .orElseThrow(() -> new NotFoundException("Order not found: " + orderId));

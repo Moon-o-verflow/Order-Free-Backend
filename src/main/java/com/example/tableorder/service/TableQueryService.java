@@ -5,7 +5,7 @@ import com.example.tableorder.entity.store.StoreTable;
 import com.example.tableorder.exception.NotFoundException;
 import com.example.tableorder.repository.StoreRepository;
 import com.example.tableorder.repository.StoreTableRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ public class TableQueryService {
     private final StoreRepository storeRepository;
     private final StoreTableRepository storeTableRepository;
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<TableListItemDto> listTables(Long storeId) {
         // 스토어 존재 확인 (없으면 404)
         storeRepository.findById(storeId)

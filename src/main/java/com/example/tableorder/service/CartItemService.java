@@ -13,7 +13,7 @@ import com.example.tableorder.entity.menu.MenuItem;
 import com.example.tableorder.entity.menu.MenuItemI18n;
 import com.example.tableorder.entity.store.StoreTable;
 import com.example.tableorder.repository.*;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -84,7 +84,7 @@ public class CartItemService {
         return CartItemAddResponse.builder().cartItemId(cartItem.getId()).menuItemId(cartItem.getMenuItem().getId()).menuName(cartItem.getMenuName()).quantity(q).price(p).linePrice(p * q).build();
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public CartDetailResponse getCart(Long storeId, Long tableId) {
         StoreTable storeTable = storeTableRepository.findByStore_IdAndId(storeId, tableId).orElseThrow(() -> new NotFoundException("존재하지 않는 테이블"));
 

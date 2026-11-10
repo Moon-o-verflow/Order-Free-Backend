@@ -1,0 +1,33 @@
+# 테스트 전용 설정. main 의 application.yml(git 미추적, 로컬 .env 의존) 대신 쓰인다.
+# 데이터소스는 Testcontainers(@ServiceConnection)가 채운다.
+spring:
+  application:
+    name: Table Order API (test)
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+
+  jackson:
+    time-zone: Asia/Seoul
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    clean-disabled: true
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  security:
+    jwt:
+      secret: test-secret-that-is-definitely-longer-than-32-bytes
+      issuer: tableorder-app
+
+logging:
+  level:
+    root: WARN
+    com.example.tableorder: INFO

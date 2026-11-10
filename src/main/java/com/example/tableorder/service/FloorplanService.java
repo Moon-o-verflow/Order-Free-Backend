@@ -7,7 +7,7 @@ import com.example.tableorder.exception.BadRequestException;
 import com.example.tableorder.exception.NotFoundException;
 import com.example.tableorder.repository.StoreRepository;
 import com.example.tableorder.repository.StoreTableRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,7 +22,7 @@ public class FloorplanService {
     private final StoreTableRepository storeTableRepository;
 
     // 11) 평면도 정보 조회
-    @Transactional
+    @Transactional(readOnly = true)
     public FloorplanResponse getFloorplan(Long storeId) {
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new NotFoundException("Store not found: " + storeId));

@@ -3,7 +3,7 @@ package com.example.tableorder.service;
 import com.example.tableorder.dto.sales.*;
 import com.example.tableorder.exception.BadRequestException;
 import com.example.tableorder.repository.SalesRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.*;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -17,7 +17,7 @@ public class SalesService {
     private final SalesRepository salesRepository;
 
     // 4) 기간별 매출 요약
-    @Transactional
+    @Transactional(readOnly = true)
     public List<SalesByDateDto> getSalesSummary(Long storeId, String periodType, String start, String end) {
         if (!"Day".equalsIgnoreCase(periodType)) {
             throw new BadRequestException("Only period_type=Day is supported for now");
@@ -27,14 +27,14 @@ public class SalesService {
     }
 
     // 5) 메뉴별 매출 집계
-    @Transactional
+    @Transactional(readOnly = true)
     public List<SalesByMenuDto> getSalesByMenu(Long storeId, String start, String end) {
         LocalDateTime[] range = parseRange(start, end);
         return salesRepository.sumByMenu(storeId, range[0], range[1]);
     }
 
     // 6) 테이블별 매출 집계 (단일 날짜)
-    @Transactional
+    @Transactional(readOnly = true)
     public List<SalesByTableDto> getSalesByTable(Long storeId, String date) {
         LocalDate d = parseDate(date);
         LocalDateTime start = d.atStartOfDay();
