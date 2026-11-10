@@ -1,5 +1,7 @@
 package com.example.tableorder.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import com.example.tableorder.dto.StaffCallTypeRequest;
 import com.example.tableorder.dto.StaffCallTypeResponse;
 import com.example.tableorder.service.StaffCallOwnerService;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@PreAuthorize("hasRole('OWNER') and @storeAccess.owns(#storeId)")
 @RequestMapping("/api/owner/stores/{storeId}")
 @RequiredArgsConstructor
 @Tag(name ="직원 호출(점주)", description = "직원 호출 관련 API(점주)")

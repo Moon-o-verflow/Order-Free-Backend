@@ -26,7 +26,7 @@ public class AdminOrderController {
     private final AdminOrderService adminOrderService;
 
     @GetMapping
-    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER') and @storeAccess.owns(#storeId)")
     @Operation(summary = "주문 목록 조회", description = "가게 내 모든 주문, 최신순")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
@@ -38,7 +38,7 @@ public class AdminOrderController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER') and @storeAccess.owns(#storeId)")
     @Operation(summary = "주문 생성", description = "재고 차감 및 가격 스냅샷")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "생성 성공"),
@@ -53,7 +53,7 @@ public class AdminOrderController {
     }
 
     @PatchMapping("/{orderId}/status")
-    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER') and @storeAccess.owns(#storeId)")
     @Operation(summary = "주문 상태 변경", description = "합법 전이만 허용")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "변경 성공"),

@@ -46,7 +46,7 @@ public class StoreController {
     }
 
     @GetMapping("/{storeId}")
-    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER') and @storeAccess.owns(#storeId)")
     @Operation(summary = "가게 조회", description = "ID로 가게 정보 조회")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "조회 성공"),
@@ -58,7 +58,7 @@ public class StoreController {
     }
 
     @PatchMapping("/{storeId}")
-    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER') and @storeAccess.owns(#storeId)")
     @Operation(summary = "가게 부분 수정", description = "부분 업데이트 지원")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "수정 성공"),

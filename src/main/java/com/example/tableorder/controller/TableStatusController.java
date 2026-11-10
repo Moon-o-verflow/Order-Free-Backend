@@ -1,5 +1,7 @@
 package com.example.tableorder.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import com.example.tableorder.dto.table.UpdateTableStatusRequest;
 import com.example.tableorder.dto.table.UpdateTableStatusResponse;
 import com.example.tableorder.service.TableStatusService;
@@ -9,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@PreAuthorize("hasRole('OWNER') and @storeAccess.ownsTable(#tableId)")
 @RequiredArgsConstructor
 @RequestMapping("/api/tables")
 public class TableStatusController {

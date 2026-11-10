@@ -1,27 +1,27 @@
 package com.example.tableorder.util;
 
+import com.example.tableorder.config.OwnerPrincipal;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.util.Collections;
-import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
- * JWT 토큰 검증 유틸 클래스.
- * - HS256 시크릿으로 서명 검증.
- * - issuer, 만료 시간, ROLE_OWNER 확인.
- * - 복잡하지 않게 최소 검증 로직만 구현.
+ * JWT 토큰 검증 유틸.
+ * - HS256 서명, issuer, 만료(parser가 검증), role=OWNER 확인.
+ * - storeIds 클레임을 읽어 {@link OwnerPrincipal}을 만든다.
  */
-@Component
 public class JwtDecoderUtil {
+
+    public static final String ROLE_CLAIM = "role";
+    public static final String STORE_IDS_CLAIM = "storeIds";
 
     private final SecretKey secretKey;
     private final String issuer;
@@ -32,10 +32,8 @@ public class JwtDecoderUtil {
     }
 
     /**
-     * 토큰 검증 및 Authentication 객체 생성.
-     * @param token Bearer 제거된 JWT 문자열
-     * @return Authentication 객체 (ROLE_OWNER 포함)
-     * @throws JwtException 검증 실패 시
+     * @param token Bearer 접두사를 뗀 JWT
+     * @throws JwtException 서명·issuer·만료·역할 검증 실패 시
      */
     public Authentication validateAndGetAuthentication(String token) throws JwtException {
         Claims claims = Jwts.parser()
@@ -45,21 +43,28 @@ public class JwtDecoderUtil {
                 .parseSignedClaims(token)
                 .getPayload();
 
-        // 만료 시간 체크 (이미 parser에서 처리되지만 명시)
-        if (claims.getExpiration().before(new Date())) {
-            throw new JwtException("토큰이 만료되었습니다.");
-        }
-
-        // 역할 확인 (claims에 "role"이 "OWNER"인지 가정)
-        String role = claims.get("role", String.class);
-        if (!"OWNER".equals(role)) {
+        if (!"OWNER".equals(claims.get(ROLE_CLAIM, String.class))) {
             throw new JwtException("OWNER 역할이 아닙니다.");
         }
 
-        // Authentication 생성 (principal은 subject, authorities는 ROLE_OWNER)
-        String subject = claims.getSubject();
-        List<SimpleGrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_OWNER"));
+        OwnerPrincipal principal = new OwnerPrincipal(claims.getSubject(), readStoreIds(claims));
+        return new UsernamePasswordAuthenticationToken(
+                principal, null, List.of(new SimpleGrantedAuthority("ROLE_OWNER")));
+    }
 
-        return new UsernamePasswordAuthenticationToken(subject, null, authorities);
+    private static Set<Long> readStoreIds(Claims claims) {
+        Object raw = claims.get(STORE_IDS_CLAIM);
+        if (!(raw instanceof List<?> list)) {
+            return Set.of();
+        }
+        Set<Long> ids = new HashSet<>();
+        for (Object item : list) {
+            if (item instanceof Number n) {
+                ids.add(n.longValue());
+            } else {
+                throw new JwtException("storeIds 클레임 형식이 올바르지 않습니다.");
+            }
+        }
+        return ids;
     }
 }

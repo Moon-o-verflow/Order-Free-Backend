@@ -8,8 +8,12 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
+
+    @Query("select o.table.store.id from Order o where o.id = :orderId")
+    Optional<Long> findStoreIdById(@Param("orderId") Long orderId);
 
     @Query("""
         select new com.example.tableorder.dto.order.LiveOrderDto(

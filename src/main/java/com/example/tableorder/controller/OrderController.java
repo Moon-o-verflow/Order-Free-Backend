@@ -1,7 +1,8 @@
 package com.example.tableorder.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import com.example.tableorder.dto.OrderHistoryResponse;
-import com.example.tableorder.dto.realtime.ViewerCountEvent;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,7 +11,6 @@ import com.example.tableorder.dto.OrderResponse;
 import com.example.tableorder.dto.realtime.OrderStatusChangedEvent;
 import com.example.tableorder.dto.realtime.MenuOutOfStockEvent;
 import com.example.tableorder.service.OrderService;
-import com.example.tableorder.service.RealtimeStatsService;
 import com.example.tableorder.util.EventBroadcaster;
 import java.util.List;
 
@@ -31,7 +31,6 @@ public class OrderController {
 
     private final OrderService orderService;
     private final EventBroadcaster eventBroadcaster;
-    private final RealtimeStatsService realtimeStatsService;
 
     @PostMapping
     @Operation(
@@ -141,6 +140,7 @@ public class OrderController {
     /**
      * 메뉴 품절 알림 (관리자용 API)
      */
+    @PreAuthorize("hasRole('OWNER') and @storeAccess.owns(#storeId)")
     @PostMapping("/menu/out-of-stock")
     @Operation(
             summary = "메뉴 품절 알림",
@@ -169,62 +169,4 @@ public class OrderController {
             return ResponseEntity.badRequest().build();
         }
     }
-
-    /**
-     * 테스트용: 접속자 수 리셋
-     */
-    @PostMapping("/test/reset-viewer-count")
-    @Operation(
-            summary = "테스트: 접속자 수 리셋",
-            description = "현재 접속자 수를 0으로 리셋합니다."
-    )
-    public ResponseEntity<ViewerCountEvent> resetViewerCount(
-            @Parameter(description = "매장 ID", example = "1") @PathVariable Long storeId,
-            @Parameter(description = "테이블 ID", example = "1") @PathVariable Long tableId) {
-
-        ViewerCountEvent event = realtimeStatsService.resetViewerCount(storeId);
-        return ResponseEntity.ok(event);
-    }
-
-
-    /**
-     * 테스트용: 현재 접속자 수 조회
-     */
-    @GetMapping("/test/current-viewer-count")
-    @Operation(
-            summary = "테스트: 현재 접속자 수 조회",
-            description = "현재 메뉴판을 보고 있는 사용자 수를 조회합니다."
-    )
-    public ResponseEntity<ViewerCountEvent> getCurrentViewerCount(
-            @Parameter(description = "매장 ID", example = "1") @PathVariable Long storeId,
-            @Parameter(description = "테이블 ID", example = "1") @PathVariable Long tableId) {
-
-        int count = realtimeStatsService.getCurrentViewerCount(storeId);
-
-        ViewerCountEvent event = ViewerCountEvent.builder()
-                .storeId(storeId)
-                .viewerCount(count)
-                .message("현재 " + count + "명이 메뉴를 보고 있습니다")
-                .timestamp(System.currentTimeMillis())
-                .build();
-
-        return ResponseEntity.ok(event);
-    }
-
-
-    /**
-     * 테스트용: 테이블 정보 확인
-     */
-    @GetMapping("/test/table-info")
-    @Operation(
-            summary = "테스트: 테이블 정보 확인",
-            description = "현재 테이블이 존재하는지 확인합니다."
-    )
-    public ResponseEntity<String> getTableInfo(
-            @Parameter(description = "매장 ID", example = "1") @PathVariable Long storeId,
-            @Parameter(description = "테이블 ID", example = "5") @PathVariable Long tableId) {
-
-        return ResponseEntity.ok(String.format("매장 %d, 테이블 %d 정보 확인됨", storeId, tableId));
-    }
-
 }

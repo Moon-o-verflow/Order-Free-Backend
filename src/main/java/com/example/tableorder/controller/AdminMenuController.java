@@ -28,7 +28,7 @@ public class AdminMenuController {
     private final AdminMenuService adminMenuService;
 
     @PostMapping("/{menuId}")
-    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER') and @storeAccess.owns(#storeId)")
     @Operation(summary = "메뉴 등록", description = "클라이언트 제공 menuId로 등록 (중복 시 409)")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "등록 성공"),
@@ -44,7 +44,7 @@ public class AdminMenuController {
     }
 
     @PatchMapping("/{menuId}")
-    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER') and @storeAccess.owns(#storeId)")
     @Operation(summary = "메뉴 부분 수정", description = "부분 업데이트 지원")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "수정 성공"),
@@ -60,7 +60,7 @@ public class AdminMenuController {
     }
 
     @DeleteMapping("/{menuId}")
-    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER') and @storeAccess.owns(#storeId)")
     @Operation(summary = "메뉴 삭제", description = "FK 제약 위반 시 409")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "삭제 성공", content = @io.swagger.v3.oas.annotations.media.Content),

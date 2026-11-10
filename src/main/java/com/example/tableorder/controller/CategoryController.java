@@ -24,7 +24,7 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @PatchMapping
-    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER') and @storeAccess.owns(#storeId)")
     @Operation(summary = "카테고리 추가", description = "가게에 카테고리 추가 (중복 허용)")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "추가 성공"),

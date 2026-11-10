@@ -2,7 +2,10 @@ package com.example.tableorder.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -61,7 +64,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AuthorizationDeniedException.class)
     public ResponseEntity<Map<String, Object>> handleAuthorizationDenied(AuthorizationDeniedException ex, WebRequest request) {
-        return buildErrorResponse(ex, "FORBIDDEN", HttpStatus.FORBIDDEN, request);  // @PreAuthorize 실패 시 403
+        // @PreAuthorize 실패: 토큰이 없으면 401, 있지만 권한(매장 소유권)이 없으면 403
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth instanceof AnonymousAuthenticationToken) {
+            return buildErrorResponse(new Exception("인증이 필요합니다."), "UNAUTHORIZED", HttpStatus.UNAUTHORIZED, request);
+        }
+        return buildErrorResponse(new Exception("접근 권한이 없습니다."), "FORBIDDEN", HttpStatus.FORBIDDEN, request);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

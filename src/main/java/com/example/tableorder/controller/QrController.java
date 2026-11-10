@@ -28,7 +28,7 @@ public class QrController {
     private final QrService qrService;
 
     @PostMapping
-    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER') and @storeAccess.owns(#storeId)")
     @Operation(summary = "QR 생성", description = "캐시 미스 시 생성, 히트 시 반환")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "생성 성공"),
@@ -43,7 +43,7 @@ public class QrController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER') and @storeAccess.owns(#storeId)")
     @Operation(summary = "QR 조회", description = "캐시 우선 반환")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),

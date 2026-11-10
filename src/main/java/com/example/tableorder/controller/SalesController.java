@@ -1,5 +1,7 @@
 package com.example.tableorder.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import com.example.tableorder.dto.sales.*;
 import com.example.tableorder.service.SalesService;
 import java.util.List;
@@ -8,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@PreAuthorize("hasRole('OWNER') and @storeAccess.owns(#storeId)")
 @RequiredArgsConstructor
 @RequestMapping("/api/sales")
 public class SalesController {

@@ -1,5 +1,7 @@
 package com.example.tableorder.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import com.example.tableorder.dto.realtime.ViewerCountEvent;
 import com.example.tableorder.service.SseRealtimeStatsService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -85,6 +87,7 @@ public class SseController {
      * @param storeId 매장 ID
      * @return 리셋된 접속자 수 이벤트
      */
+    @PreAuthorize("hasRole('OWNER') and @storeAccess.owns(#storeId)")
     @PostMapping("/viewer-count/{storeId}/reset")
     @Operation(summary = "접속자 수 리셋", description = "특정 매장의 접속자 수를 0으로 리셋합니다 (테스트용)")
     @ApiResponses({
