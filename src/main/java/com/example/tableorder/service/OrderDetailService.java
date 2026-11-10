@@ -2,6 +2,7 @@ package com.example.tableorder.service;
 
 import com.example.tableorder.dto.order.*;
 import com.example.tableorder.entity.order.*;
+import com.example.tableorder.entity.payment.OrderPaymentStatus;
 import com.example.tableorder.entity.payment.Payment;
 import com.example.tableorder.exception.NotFoundException;
 import com.example.tableorder.repository.OrderDetailRepository;
@@ -38,10 +39,8 @@ public class OrderDetailService {
 
         int total = items.stream().mapToInt(i -> i.getUnitPrice() * i.getQty()).sum();
 
-        String paymentStatus = paymentRepository.findTopByOrder_IdOrderByApprovedAtDesc(orderId)
-                .map(Payment::getApprovedAt)
-                .map(ts -> "Paid")
-                .orElse("Unpaid");
+        OrderPaymentStatus paymentStatus = OrderPaymentStatus.of(
+                paymentRepository.findByOrder_Id(orderId).map(Payment::getStatus).orElse(null));
 
         return OrderDetailDto.builder()
                 .orderId(o.getId())

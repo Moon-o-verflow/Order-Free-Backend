@@ -1,27 +1,124 @@
 package com.example.tableorder.entity.payment;
 
 import com.example.tableorder.entity.order.Order;
-import jakarta.persistence.*;
-import lombok.*;
+import com.example.tableorder.exception.BadRequestException;
+import com.example.tableorder.exception.BusinessRuleException;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import jakarta.persistence.Version;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor @Builder
-@Entity @Table(name = "payment")
+/**
+ * 주문 1건의 결제. 주문당 행은 하나(order_id UNIQUE)이고, 상태 전이는 메서드로만 한다.
+ * 금액은 항상 서버가 주문에서 계산한 값이다.
+ */
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Entity
+@Table(name = "payment")
 public class Payment {
 
     @Id
-    @Column(name = "transaction_id")
-    private String transactionId;             // varchar PK
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "order_id", nullable = false)
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "order_id", nullable = false, unique = true)
     private Order order;
 
-    private Integer status;                   // int
-    private Integer amount;                   // int
-    private String method;                    // varchar
+    @Column(name = "pg_order_id", nullable = false, unique = true, length = 64)
+    private String pgOrderId;
+
+    @Column(name = "payment_key", unique = true, length = 200)
+    private String paymentKey;
+
+    @Column(nullable = false)
+    private Integer amount;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private PaymentStatus status;
+
+    @Column(length = 50)
+    private String method;
 
     @Column(name = "approved_at")
     private LocalDateTime approvedAt;
+
+    @Column(name = "failure_code", length = 100)
+    private String failureCode;
+
+    @Column(name = "failure_message", length = 500)
+    private String failureMessage;
+
+    @Version
+    private Long version;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    public static Payment ready(Order order, String pgOrderId, int amount) {
+        if (amount <= 0) {
+            throw new BadRequestException("결제할 금액이 없습니다.");
+        }
+        Payment p = new Payment();
+        p.order = order;
+        p.pgOrderId = pgOrderId;
+        p.amount = amount;
+        p.status = PaymentStatus.READY;
+        return p;
+    }
+
+    /** FR-2: 클라이언트가 보낸 금액이 서버 금액과 같은지. 다르면 PG 호출 없이 400. */
+    public void verifyAmount(Integer requested) {
+        if (requested == null || !requested.equals(amount)) {
+            throw new PaymentAmountMismatchException(amount, requested);
+        }
+    }
+
+    /** 실패한 결제를 새 PG 주문번호로 다시 준비한다. */
+    public void retry(String newPgOrderId) {
+        transitionTo(PaymentStatus.READY);
+        this.pgOrderId = newPgOrderId;
+        this.paymentKey = null;
+        this.method = null;
+        this.approvedAt = null;
+        this.failureCode = null;
+        this.failureMessage = null;
+    }
+
+    private void transitionTo(PaymentStatus next) {
+        if (!status.canTransitionTo(next)) {
+            throw new BusinessRuleException("결제 상태를 " + status + "에서 " + next + "(으)로 바꿀 수 없습니다.");
+        }
+        status = next;
+    }
+
+    @PrePersist
+    void onCreate() {
+        createdAt = updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

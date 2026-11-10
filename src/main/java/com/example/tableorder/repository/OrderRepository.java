@@ -15,6 +15,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("select o.table.store.id from Order o where o.id = :orderId")
     Optional<Long> findStoreIdById(@Param("orderId") Long orderId);
 
+    /** 손님 경로(매장·테이블)에 속한 주문만 찾는다. */
+    Optional<Order> findByIdAndTable_IdAndTable_Store_Id(Long id, Long tableId, Long storeId);
+
     @Query("""
         select new com.example.tableorder.dto.order.LiveOrderDto(
             o.id,

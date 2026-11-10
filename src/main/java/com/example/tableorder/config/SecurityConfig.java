@@ -66,6 +66,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/stores").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/sse/viewer-count/*", "/api/sse/viewer-count/*/current").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/sse/disconnect").permitAll()
+                        // 결제 조회는 추측 불가능한 PG 주문번호로만 가능
+                        .requestMatchers(HttpMethod.GET, "/api/payments/*").permitAll()
                         .requestMatchers("/api/**").hasRole("OWNER")
                         .anyRequest().authenticated()
                 )

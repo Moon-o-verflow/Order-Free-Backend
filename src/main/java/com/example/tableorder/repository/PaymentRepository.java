@@ -1,9 +1,13 @@
 package com.example.tableorder.repository;
 
 import com.example.tableorder.entity.payment.Payment;
-import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface PaymentRepository extends JpaRepository<Payment, String> {
-    Optional<Payment> findTopByOrder_IdOrderByApprovedAtDesc(Long orderId);
+import java.util.Optional;
+
+public interface PaymentRepository extends JpaRepository<Payment, Long> {
+
+    Optional<Payment> findByOrder_Id(Long orderId);
+
+    Optional<Payment> findByPgOrderId(String pgOrderId);
 }

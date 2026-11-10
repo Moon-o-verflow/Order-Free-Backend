@@ -1,5 +1,7 @@
 package com.example.tableorder.dto.order;
 
+import com.example.tableorder.entity.payment.OrderPaymentStatus;
+
 import com.example.tableorder.entity.order.OrderStatus;
 
 import java.time.LocalDateTime;
@@ -14,5 +16,5 @@ public class OrderDetailDto {
     private LocalDateTime orderedAt; // createdAt
     private List<OrderItemSummaryDto> orderItems;
     private Integer totalAmount;
-    private String paymentStatus;    // "Paid" | "Unpaid"
+    private OrderPaymentStatus paymentStatus; // UNPAID | PAID | REFUNDED
 }
