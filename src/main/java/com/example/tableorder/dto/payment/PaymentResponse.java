@@ -16,11 +16,14 @@ public record PaymentResponse(
         Integer amount,
         PaymentStatus status,
         String method,
-        LocalDateTime approvedAt
+        LocalDateTime approvedAt,
+        String failureCode,
+        String failureMessage
 ) {
     public static PaymentResponse from(Payment p) {
         return new PaymentResponse(
                 p.getId(), p.getOrder().getId(), p.getPgOrderId(), "주문 #" + p.getOrder().getId(),
-                p.getAmount(), p.getStatus(), p.getMethod(), p.getApprovedAt());
+                p.getAmount(), p.getStatus(), p.getMethod(), p.getApprovedAt(),
+                p.getFailureCode(), p.getFailureMessage());
     }
 }

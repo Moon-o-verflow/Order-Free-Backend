@@ -105,6 +105,41 @@ public class Payment {
         this.failureMessage = null;
     }
 
+    /** PG 승인 확정 (TX2 또는 복구). 이미 DONE이면 아무것도 하지 않는다. */
+    public void complete(String paymentKey, String method, LocalDateTime approvedAt) {
+        if (status == PaymentStatus.DONE) {
+            return;
+        }
+        transitionTo(PaymentStatus.DONE);
+        this.paymentKey = paymentKey;
+        this.method = method;
+        this.approvedAt = approvedAt != null ? approvedAt : LocalDateTime.now();
+        this.failureCode = null;
+        this.failureMessage = null;
+    }
+
+    /** PG가 거절했거나, 승인되지 않은 채 끝났음이 확인됨. */
+    public void fail(String code, String message) {
+        if (status == PaymentStatus.FAILED) {
+            return;
+        }
+        transitionTo(PaymentStatus.FAILED);
+        this.failureCode = truncate(code, 100);
+        this.failureMessage = truncate(message, 500);
+    }
+
+    /** 승인 결과를 모름 (타임아웃 등). 재승인하지 않고 조회로만 확정한다. */
+    public void markUnknown() {
+        if (status == PaymentStatus.UNKNOWN) {
+            return;
+        }
+        transitionTo(PaymentStatus.UNKNOWN);
+    }
+
+    private static String truncate(String s, int max) {
+        return s == null || s.length() <= max ? s : s.substring(0, max);
+    }
+
     private void transitionTo(PaymentStatus next) {
         if (!status.canTransitionTo(next)) {
             throw new BusinessRuleException("결제 상태를 " + status + "에서 " + next + "(으)로 바꿀 수 없습니다.");

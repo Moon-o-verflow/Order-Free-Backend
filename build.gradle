@@ -88,6 +88,8 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:mysql'
+    // PG(토스페이먼츠) 대역: 지연·오류·호출 횟수 검증
+    testImplementation 'org.wiremock:wiremock-standalone:3.9.1'
 }
 
 tasks.named('test') {
